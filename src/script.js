@@ -1,6 +1,21 @@
 import "./style.css"
 import * as THREE from "three"
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
+import { compose } from "ramda"
+
+import {
+  createGeometry,
+  createMaterial,
+  addMaterial,
+  createCamera,
+  createScene,
+  createRenderer,
+  addToScene,
+  setPosition,
+  setRendererPixelRatio,
+  createOrbitControls,
+  setRenderSize,
+  render,
+} from "./helpers"
 
 //_ Select the canvas
 const canvas = document.querySelector("canvas.webgl")
@@ -11,38 +26,49 @@ const size = {
   height: window.innerHeight,
 }
 
-//_ Create a scene
-const scene = new THREE.Scene()
+//_ Functional
+const curry = (f) => (x) => (y) => f(x, y)
 
-//_ Create Geometry
-const box = new THREE.BoxBufferGeometry(1, 1, 1)
+//* create scene
+const curriedAddToScene = curry(addToScene)
 
-//_ Create Material
-const material = new THREE.MeshBasicMaterial({
-  color: "teal",
+const scene = createScene()
+const augmentScene = curriedAddToScene(scene)
+
+//* create mesh
+const material = createMaterial("basic", { color: "teal" })
+const curriedMaterial = curry(addMaterial)
+const addBasicMaterial = curriedMaterial(material)
+
+compose(
+  augmentScene,
+  addBasicMaterial,
+  createGeometry
+)({ geometry: "box", props: [1, 1, 1] })
+
+//* create camera
+const camera = createCamera({
+  camera: "perspective",
+  props: { width: size.width, height: size.height },
 })
+const curriedSetPosition = curry(setPosition)
+const setPositionOffCenter = curriedSetPosition({ x: 2, y: 2, z: 2 })
 
-//_ Create mesh
-const mesh = new THREE.Mesh(box, material)
-scene.add(mesh)
+compose(augmentScene, setPositionOffCenter)(camera)
 
-//_ Create camera
-const camera = new THREE.PerspectiveCamera(
-  75,
-  size.width / size.height,
-  0.01,
-  1000
-)
-camera.position.set(2, 2, 2)
-scene.add(camera)
+const controls = createOrbitControls(canvas, camera)
 
 //_ Create renderer
-const renderer = new THREE.WebGLRenderer({
-  canvas: canvas,
-})
+const curriedSetRendererSize = curry(setRenderSize)
+const setRenderWindowDimensions = curriedSetRendererSize(size)
 
-renderer.setSize(size.width, size.height)
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+const curriedSetPixelRatio = curry(setRendererPixelRatio)
+const setPixelRatioToDevice = curriedSetPixelRatio(
+  Math.min(window.devicePixelRatio, 2)
+)
+
+const renderer = createRenderer(canvas)
+compose(setPixelRatioToDevice, setRenderWindowDimensions)(renderer)
 
 //_ Resize events
 window.addEventListener("resize", () => {
@@ -59,10 +85,6 @@ window.addEventListener("resize", () => {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 })
 
-//_ Add controls
-const controls = new OrbitControls(camera, canvas)
-controls.enableDamping = true
-
 //_ Frame function
 const clock = new THREE.Clock()
 
@@ -71,7 +93,7 @@ const frame = () => {
 
   controls.update()
 
-  renderer.render(scene, camera)
+  render(scene, camera, renderer)
 
   window.requestAnimationFrame(frame)
 }
