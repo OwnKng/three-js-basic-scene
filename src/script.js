@@ -15,7 +15,7 @@ import {
   setRenderSize,
   render,
   updateControls,
-} from "./helpers"
+} from "./functions"
 
 //_ Select the canvas
 const canvas = document.querySelector("canvas.webgl")
