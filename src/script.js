@@ -1,10 +1,10 @@
 import "./style.css"
-import { pipe, curry } from "ramda"
+import * as THREE from "three"
+
+import { pipe, curry, map } from "ramda"
 
 import {
-  createGeometry,
-  createMaterial,
-  addMaterial,
+  generatePoints,
   createCamera,
   createScene,
   createRenderer,
@@ -15,7 +15,12 @@ import {
   setRenderSize,
   render,
   updateControls,
+  setScale,
+  addMaterialsToPoints,
+  createMaterial,
 } from "./functions"
+import { vertex } from "./shaders/vertex"
+import { fragment } from "./shaders/fragment"
 
 //_ Select the canvas
 const canvas = document.querySelector("canvas.webgl")
@@ -32,15 +37,40 @@ const size = {
 const scene = createScene()
 const addObjToScene = curry(addToScene)(scene)
 
-//* create mesh
-const material = createMaterial("basic", { color: "teal" })
-const addBasicMaterial = curry(addMaterial)(material)
+//* create renderer
+const setRenderWindowDimensions = curry(setRenderSize)(size)
+const setPixelRatioToDevice = curry(setRendererPixelRatio)(
+  Math.min(window.devicePixelRatio, 2)
+)
 
-const mesh = pipe(
-  createGeometry,
-  addBasicMaterial,
+const renderer = pipe(
+  createRenderer,
+  setRenderWindowDimensions,
+  setPixelRatioToDevice
+)(canvas)
+
+//* create points
+const material = createMaterial("shader", {
+  vertexShader: vertex,
+  fragmentShader: fragment,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+  vertexColors: true,
+  uniforms: {
+    uSize: { value: 3.0 * renderer.getPixelRatio() },
+    uTime: { value: 0 },
+  },
+})
+
+const addShaderMaterial = curry(addMaterialsToPoints)(material)
+const scalePoints = curry(setScale)({ x: 5, y: 10, z: 10 })
+
+const points = pipe(
+  generatePoints,
+  addShaderMaterial,
+  scalePoints,
   addObjToScene
-)({ geometry: "box", props: [1, 1, 1] })
+)(120, 120)
 
 //* create camera
 const setPositionOffCenter = curry(setPosition)({ x: 2, y: 2, z: 2 })
@@ -56,18 +86,6 @@ const camera = pipe(
 
 //* create controls
 const controls = createOrbitControls(canvas, camera)
-
-//* create renderer
-const setRenderWindowDimensions = curry(setRenderSize)(size)
-const setPixelRatioToDevice = curry(setRendererPixelRatio)(
-  Math.min(window.devicePixelRatio, 2)
-)
-
-const renderer = pipe(
-  createRenderer,
-  setRenderWindowDimensions,
-  setPixelRatioToDevice
-)(canvas)
 
 //_ Resize events
 window.addEventListener("resize", () => {

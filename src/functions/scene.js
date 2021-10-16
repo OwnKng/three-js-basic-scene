@@ -14,4 +14,9 @@ const setPosition = ({ x, y, z }, obj) => {
   return obj
 }
 
-export { setPosition, createScene, addToScene }
+const setScale = ({ x, y, z }, obj) => {
+  obj.scale.set(x, y, z)
+  return obj
+}
+
+export { setPosition, setScale, createScene, addToScene }
