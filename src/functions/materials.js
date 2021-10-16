@@ -1,6 +1,5 @@
 import * as THREE from "three"
 
-//_ materials
 const createBasicMaterial = (props) => new THREE.MeshBasicMaterial(props)
 
 const createShaderMaterial = (props) => new THREE.ShaderMaterial(props)
@@ -19,7 +18,9 @@ const createMaterial = (material, props) => {
   return action ? action(props) : props
 }
 
-//_ mesh
 const addMaterial = (material, geometry) => new THREE.Mesh(geometry, material)
 
-export { createMaterial, addMaterial }
+const mutateUniform = (material, uniform, value) =>
+  (material.uniforms[uniform].value = value)
+
+export { createMaterial, addMaterial, mutateUniform }

@@ -1,7 +1,7 @@
 import "./style.css"
 import * as THREE from "three"
 
-import { pipe, curry, map } from "ramda"
+import { pipe, curry } from "ramda"
 
 import {
   generatePoints,
@@ -18,6 +18,9 @@ import {
   setScale,
   addMaterialsToPoints,
   createMaterial,
+  mutateUniform,
+  createClock,
+  getClockTime,
 } from "./functions"
 import { vertex } from "./shaders/vertex"
 import { fragment } from "./shaders/fragment"
@@ -36,6 +39,7 @@ const size = {
 //* create scene
 const scene = createScene()
 const addObjToScene = curry(addToScene)(scene)
+scene.background = new THREE.Color("#08121C")
 
 //* create renderer
 const setRenderWindowDimensions = curry(setRenderSize)(size)
@@ -57,20 +61,20 @@ const material = createMaterial("shader", {
   blending: THREE.AdditiveBlending,
   vertexColors: true,
   uniforms: {
-    uSize: { value: 3.0 * renderer.getPixelRatio() },
+    uSize: { value: 1.0 * renderer.getPixelRatio() },
     uTime: { value: 0 },
   },
 })
 
 const addShaderMaterial = curry(addMaterialsToPoints)(material)
-const scalePoints = curry(setScale)({ x: 5, y: 10, z: 10 })
+const scalePoints = curry(setScale)({ x: 20, y: 20, z: 20 })
 
 const points = pipe(
   generatePoints,
   addShaderMaterial,
   scalePoints,
   addObjToScene
-)(120, 120)
+)(500, 500)
 
 //* create camera
 const setPositionOffCenter = curry(setPosition)({ x: 2, y: 2, z: 2 })
@@ -103,9 +107,14 @@ window.addEventListener("resize", () => {
 })
 
 //_ Frame function
+const clock = createClock()
+
 const frame = () => {
   updateControls(controls)
   render(scene, camera, renderer)
+
+  const elapsedTime = getClockTime(clock)
+  mutateUniform(material, "uTime", elapsedTime)
 
   window.requestAnimationFrame(frame)
 }
