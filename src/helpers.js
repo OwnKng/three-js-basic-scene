@@ -1,41 +1,42 @@
 import * as THREE from "three"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 
+//_ general helpers
+const setPosition = ({ x, y, z }, obj) => {
+  obj.position.set(x, y, z)
+  return obj
+}
+
 //_ geometries
 const createBox = (props) => new THREE.BoxGeometry(...props)
 
 const createSphere = (props) => new THREE.SphereGeometry(...props)
 
+const geomMap = {
+  box: createBox,
+  sphere: createSphere,
+}
+
 const createGeometry = ({ geometry, props }) => {
-  let geom
+  const action = geomMap[geometry]
 
-  switch (geometry) {
-    case "box":
-      geom = createBox(props)
-      break
-    case "sphere":
-      geom = createSphere(props)
-      break
-    default:
-      geom = createBox(props)
-  }
-
-  return geom
+  return action ? action(props) : props
 }
 
 //_ materials
 const createBasicMaterial = (props) => new THREE.MeshBasicMaterial(props)
 
+const createShaderMaterial = (props) => new THREE.ShaderMaterial(props)
+
+const materialMap = {
+  basic: createBasicMaterial,
+  shader: createShaderMaterial,
+}
+
 const createMaterial = (material, props) => {
-  let mat
+  const action = materialMap[material]
 
-  switch (material) {
-    case "basic":
-      mat = createBasicMaterial(props)
-      break
-  }
-
-  return mat
+  return action ? action(props) : props
 }
 
 //_ mesh
@@ -45,22 +46,18 @@ const addMaterial = (material, geometry) => new THREE.Mesh(geometry, material)
 const createPerspectiveCamera = (props) =>
   new THREE.PerspectiveCamera(75, props.width / props.height, 0.01, 1000)
 
-const setPosition = ({ x, y, z }, obj) => {
-  obj.position.set(x, y, z)
-  return obj
+const cameraMap = {
+  perspective: createPerspectiveCamera,
 }
 
 const createCamera = ({ camera, props }) => {
-  let cmr
+  const action = cameraMap[camera]
 
-  switch (camera) {
-    case "perspective":
-      cmr = createPerspectiveCamera(props)
-      break
-  }
-
-  return cmr
+  return action ? action(props) : props
 }
+
+const updateCameraAspect = (camera, aspect) => camera.aspect(aspect)
+const updateCameraProjectionMatrix = (camera) => camera.updateProjectionMatrix()
 
 //_ controls
 const createOrbitControls = (canvas, camera) => {
@@ -68,6 +65,8 @@ const createOrbitControls = (canvas, camera) => {
   controls.enableDamping = true
   return controls
 }
+
+const updateControls = (controls) => controls.update()
 
 //_ render
 const createRenderer = (canvas) =>
@@ -103,6 +102,9 @@ export {
   createScene,
   createRenderer,
   createOrbitControls,
+  updateCameraAspect,
+  updateCameraProjectionMatrix,
+  updateControls,
   addToScene,
   setPosition,
   setRenderSize,
