@@ -74,7 +74,7 @@ const points = pipe(
   addShaderMaterial,
   scalePoints,
   addObjToScene
-)(500, 500)
+)(1000, 1000)
 
 //* create camera
 const setPositionOffCenter = curry(setPosition)({ x: 2, y: 2, z: 2 })
