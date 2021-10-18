@@ -3,12 +3,14 @@ import * as THREE from "three"
 //_ geometries
 const createBox = (props) => new THREE.BoxGeometry(...props)
 const createSphere = (props) => new THREE.SphereGeometry(...props)
-const createBuffer = (props) => new THREE.BufferGeometry(props)
+const createBuffer = (props) => new THREE.BufferGeometry(...props)
+const createPlane = (props) => new THREE.PlaneGeometry(...props)
 
 const geomMap = {
   box: createBox,
   sphere: createSphere,
   buffer: createBuffer,
+  plane: createPlane,
 }
 
 const createGeometry = ({ geometry, props = {} }) => {

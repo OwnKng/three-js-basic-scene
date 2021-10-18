@@ -46,15 +46,19 @@ const hsl2rgb = `
 
 export const fragment = /* glsl */ `
     varying float vHeight; 
+    varying float vPerlinStrength;
+    varying vec2 vUv;
 
     ${hsl2rgb}
 
     void main() {
-        float height = vHeight / 20.0;
-        vec3 color = hsl2rgb(height + 0.6, 0.5, 0.5);
+        float temp = vPerlinStrength + 0.05;
+        temp = temp * 3.5 + 0.5;
 
-        float strength = step(0.5, 1.0 - distance(gl_PointCoord, vec2(0.5)));
+        vec3 color = hsl2rgb(temp, 0.5, 0.5);
+        float alpha = step(0.05, mod(vUv.x * 30.0, 1.0));
+        alpha = alpha - step(0.95, mod(vUv.y * 30.0, 1.0));
 
-        gl_FragColor = vec4(color, strength);
+        gl_FragColor = vec4(color, alpha);
     }
 `

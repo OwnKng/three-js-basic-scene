@@ -4,7 +4,7 @@ import * as THREE from "three"
 import { pipe, curry } from "ramda"
 
 import {
-  generatePoints,
+  createGeometry,
   createCamera,
   createScene,
   createRenderer,
@@ -15,12 +15,12 @@ import {
   setRenderSize,
   render,
   updateControls,
-  setScale,
-  addMaterialsToPoints,
+  setRotation,
   createMaterial,
   mutateUniform,
   createClock,
   getClockTime,
+  addMaterial,
 } from "./functions"
 import { vertex } from "./shaders/vertex"
 import { fragment } from "./shaders/fragment"
@@ -57,24 +57,25 @@ const renderer = pipe(
 const material = createMaterial("shader", {
   vertexShader: vertex,
   fragmentShader: fragment,
-  depthWrite: false,
-  blending: THREE.AdditiveBlending,
-  vertexColors: true,
+  transparent: true,
   uniforms: {
     uSize: { value: 1.0 * renderer.getPixelRatio() },
     uTime: { value: 0 },
   },
 })
 
-const addShaderMaterial = curry(addMaterialsToPoints)(material)
-const scalePoints = curry(setScale)({ x: 20, y: 20, z: 20 })
+const addShaderMaterial = curry(addMaterial)(material)
+const rotatePlane = curry(setRotation)({ x: -0.5 * Math.PI, y: 0, z: 0 })
 
-const points = pipe(
-  generatePoints,
+const plane = pipe(
+  createGeometry,
   addShaderMaterial,
-  scalePoints,
+  rotatePlane,
   addObjToScene
-)(1000, 1000)
+)({
+  geometry: "sphere",
+  props: [1, 512, 512],
+})
 
 //* create camera
 const setPositionOffCenter = curry(setPosition)({ x: 2, y: 2, z: 2 })
