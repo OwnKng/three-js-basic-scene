@@ -1,5 +1,6 @@
 import "./style.css"
 import * as THREE from "three"
+import * as dat from "dat.gui"
 
 import { pipe, curry } from "ramda"
 
@@ -61,11 +62,15 @@ const material = createMaterial("shader", {
   uniforms: {
     uSize: { value: 1.0 * renderer.getPixelRatio() },
     uTime: { value: 0 },
+    uDistortionFrequency: { value: 2.0 },
+    uDistortionStrength: { value: 4.0 },
+    uDisplacementFrequency: { value: 1.0 },
+    uDisplacementStrength: { value: 0.2 },
   },
 })
 
 const addShaderMaterial = curry(addMaterial)(material)
-const rotatePlane = curry(setRotation)({ x: -0.5 * Math.PI, y: 0, z: 0 })
+const rotatePlane = curry(setRotation)({ x: 0.5 * Math.PI, y: 0, z: 0 })
 
 const plane = pipe(
   createGeometry,
@@ -73,12 +78,12 @@ const plane = pipe(
   rotatePlane,
   addObjToScene
 )({
-  geometry: "sphere",
-  props: [1, 512, 512],
+  geometry: "plane",
+  props: [20, 10, 1024, 1024],
 })
 
 //* create camera
-const setPositionOffCenter = curry(setPosition)({ x: 2, y: 2, z: 2 })
+const setPositionOffCenter = curry(setPosition)({ x: 0, y: 0, z: 10 })
 
 const camera = pipe(
   createCamera,
@@ -91,6 +96,37 @@ const camera = pipe(
 
 //* create controls
 const controls = createOrbitControls(canvas, camera)
+
+//_ dat gui
+const gui = new dat.GUI()
+
+gui
+  .add(material.uniforms.uDistortionFrequency, "value")
+  .name("uDistortionFrequency")
+  .min(1)
+  .max(10)
+  .step(0.5)
+
+gui
+  .add(material.uniforms.uDistortionStrength, "value")
+  .min(1)
+  .max(10)
+  .step(0.5)
+  .name("uDistortionStrength")
+
+gui
+  .add(material.uniforms.uDisplacementFrequency, "value")
+  .min(0)
+  .max(10)
+  .step(0.5)
+  .name("uDisplacementFrequency")
+
+gui
+  .add(material.uniforms.uDisplacementStrength, "value")
+  .min(0)
+  .max(1)
+  .step(0.1)
+  .name("uDisplacementStrength")
 
 //_ Resize events
 window.addEventListener("resize", () => {
