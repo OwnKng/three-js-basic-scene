@@ -53,11 +53,11 @@ export const fragment = /* glsl */ `
 
     void main() {
         float temp = vPerlinStrength + 0.05;
-        temp = temp * 3.5 + 0.5;
+        temp = temp * 0.75;
 
         vec3 color = hsl2rgb(temp, 0.5, 0.5);
-        float alpha = step(0.05, mod(vUv.x * 30.0, 1.0));
-        alpha = alpha - step(0.95, mod(vUv.y * 30.0, 1.0));
+        float alpha = step(0.03, mod(vUv.x * 20.0, 1.0));
+        alpha = alpha - step(0.97, mod(vUv.y * 20.0, 1.0));
 
         gl_FragColor = vec4(color, alpha);
     }
