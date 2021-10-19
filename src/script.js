@@ -79,7 +79,7 @@ const plane = pipe(
   addObjToScene
 )({
   geometry: "plane",
-  props: [20, 10, 1024, 1024],
+  props: [10, 20, 512, 512],
 })
 
 //* create camera

@@ -54,14 +54,15 @@ export const fragment = /* glsl */ `
 
     void main() {
         float temp = sin(vPerlinStrength * 4.0) * 0.5 + 0.5;
-        // temp = temp * (vUv.y * vUv.x) + 0.2;
+        
         // float xPos = sin(vTime * 0.8) * 0.5 + 0.5;
         // float yPos = cos(vTime * 0.8) * 0.5 + 0.5;
-        temp = temp * distance(vUv, vec2(0.2, 0.8)) + 0.15;
+        temp = temp * (1.0 - distance(vUv, vec2(0.2, 0.1)));
+        float alpha = temp;
 
         temp = temp * 0.5 + 0.5;
         vec3 color = hsl2rgb(temp, 0.5, 0.5);
     
-        gl_FragColor = vec4(color, 1.0);
+        gl_FragColor = vec4(color, alpha);
     }
 `
