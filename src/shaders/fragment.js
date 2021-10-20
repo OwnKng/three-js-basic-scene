@@ -49,17 +49,19 @@ export const fragment = /* glsl */ `
     varying float vPerlinStrength;
     varying vec2 vUv;
     varying float vTime;
+    varying vec2 vMouse;
 
     ${hsl2rgb}
 
     void main() {
         float temp = sin(vPerlinStrength * 4.0) * 0.5 + 0.5;
         
-        // float xPos = sin(vTime * 0.8) * 0.5 + 0.5;
-        // float yPos = cos(vTime * 0.8) * 0.5 + 0.5;
-        temp = temp * (1.0 - distance(vUv, vec2(0.2, 0.1)));
-        float alpha = temp;
+        float xPos = sin(vTime * 0.8) * 0.5 + 0.5;
+        float yPos = cos(vTime * 0.8) * 0.5 + 0.5;
+        temp = temp * (1.0 - distance(vUv, vec2(vMouse)));
+        float alpha = 1.0 - distance(vUv, vec2(vMouse));
 
+        //_ mouse
         temp = temp * 0.5 + 0.5;
         vec3 color = hsl2rgb(temp, 0.5, 0.5);
     

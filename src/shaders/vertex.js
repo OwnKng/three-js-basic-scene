@@ -78,13 +78,17 @@ float cnoise(vec3 P){
 export const vertex = /* glsl */ `
     uniform float uSize;
     uniform float uTime;
+    uniform vec2 uMouse;
     uniform float uDistortionFrequency;
     uniform float uDistortionStrength;
     uniform float uDisplacementFrequency;
     uniform float uDisplacementStrength;
     varying float vPerlinStrength;
+
+    varying vec2 vMouse;
     varying vec2 vUv;
     varying float vTime; 
+
 
     ${cnoise}
 
@@ -98,14 +102,15 @@ export const vertex = /* glsl */ `
         vec3 newPosition = position; 
         newPosition += normal * perlinStrength;
      
-        vec4 viewPosition = viewMatrix * vec4(newPosition, 1.0);
+        vec4 viewPosition = modelViewMatrix * vec4(newPosition, 1.0);
         vec4 projectedPosition = projectionMatrix * viewPosition;
-
         gl_Position = projectedPosition;
 
 
+        //_ pass uniforms
         vPerlinStrength = perlinStrength;
         vUv = uv;
         vTime = uTime;
+        vMouse = uMouse;
     }
 `

@@ -25,6 +25,7 @@ import {
 } from "./functions"
 import { vertex } from "./shaders/vertex"
 import { fragment } from "./shaders/fragment"
+import { Vector2 } from "three"
 
 //_ Select the canvas
 const canvas = document.querySelector("canvas.webgl")
@@ -62,15 +63,16 @@ const material = createMaterial("shader", {
   uniforms: {
     uSize: { value: 1.0 * renderer.getPixelRatio() },
     uTime: { value: 0 },
-    uDistortionFrequency: { value: 2.0 },
+    uDistortionFrequency: { value: 1.0 },
     uDistortionStrength: { value: 4.0 },
-    uDisplacementFrequency: { value: 1.0 },
+    uDisplacementFrequency: { value: 0.5 },
     uDisplacementStrength: { value: 0.2 },
+    uMouse: { value: new Vector2(0.0, 0.0) },
   },
 })
 
 const addShaderMaterial = curry(addMaterial)(material)
-const rotatePlane = curry(setRotation)({ x: 0.5 * Math.PI, y: 0, z: 0 })
+const rotatePlane = curry(setRotation)({ x: -0.5 * Math.PI, y: 0, z: 0 })
 
 const plane = pipe(
   createGeometry,
@@ -79,11 +81,11 @@ const plane = pipe(
   addObjToScene
 )({
   geometry: "plane",
-  props: [10, 20, 512, 512],
+  props: [40, 40, 512, 512],
 })
 
 //* create camera
-const setPositionOffCenter = curry(setPosition)({ x: 0, y: 0, z: 10 })
+const setPositionOffCenter = curry(setPosition)({ x: 0, y: 10, z: 5 })
 
 const camera = pipe(
   createCamera,
@@ -128,6 +130,17 @@ gui
   .step(0.1)
   .name("uDisplacementStrength")
 
+//_ raycaster
+const raycaster = new THREE.Raycaster()
+const mouse = new THREE.Vector2()
+
+function onMouseMove(event) {
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+}
+
+window.addEventListener("mousemove", onMouseMove, false)
+
 //_ Resize events
 window.addEventListener("resize", () => {
   //* Update sizes
@@ -149,6 +162,14 @@ const clock = createClock()
 const frame = () => {
   updateControls(controls)
   render(scene, camera, renderer)
+
+  raycaster.setFromCamera(mouse, camera)
+
+  // calculate objects intersecting the picking ray
+  const intersects = raycaster.intersectObjects(scene.children)
+  const uv = intersects.length ? intersects[0].uv : new Vector2(0.5, 0.5)
+
+  mutateUniform(material, "uMouse", uv)
 
   const elapsedTime = getClockTime(clock)
   mutateUniform(material, "uTime", elapsedTime)
