@@ -83,16 +83,20 @@ export const vertex = /* glsl */ `
     uniform float uDistortionStrength;
     uniform float uDisplacementFrequency;
     uniform float uDisplacementStrength;
-    varying float vPerlinStrength;
+    uniform vec2 uResolution;
 
+    varying float vPerlinStrength;
     varying vec2 vMouse;
     varying vec2 vUv;
     varying float vTime; 
+
+    #define PI 3.14159265359
 
 
     ${cnoise}
 
     void main() {
+
         vec4 modelPosition = modelMatrix * vec4(position, 1.0);
 
         vec3 displacementPosition = position; 
@@ -101,6 +105,8 @@ export const vertex = /* glsl */ `
 
         vec3 newPosition = position; 
         newPosition += normal * perlinStrength;
+
+        newPosition.z += sin(perlinStrength * PI);
      
         vec4 viewPosition = modelViewMatrix * vec4(newPosition, 1.0);
         vec4 projectedPosition = projectionMatrix * viewPosition;

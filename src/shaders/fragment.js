@@ -59,7 +59,8 @@ export const fragment = /* glsl */ `
         float xPos = sin(vTime * 0.8) * 0.5 + 0.5;
         float yPos = cos(vTime * 0.8) * 0.5 + 0.5;
         temp = temp * (1.0 - distance(vUv, vec2(vMouse)));
-        float alpha = 1.0 - distance(vUv, vec2(vMouse));
+        float alpha = 1.0 - distance(vUv, vec2(0.5));
+        alpha = 1.0 - step(alpha, 0.5);
 
         //_ mouse
         temp = temp * 0.5 + 0.5;
