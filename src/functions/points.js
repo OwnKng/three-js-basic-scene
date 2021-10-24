@@ -47,9 +47,22 @@ const generateColors = (width, length) => {
   return colors
 }
 
+const generateScales = (width, length) => {
+  const numPoints = width * length
+
+  const scales = new Float32Array(numPoints)
+
+  for (let i = 0; i < numPoints; i++) {
+    scales[i] = Math.random()
+  }
+
+  return scales
+}
+
 const generatePoints = (width, length) => {
   const colors = generateColors(width, length)
   const positions = generateGrid(width, length)
+  const scales = generateScales(width, length)
 
   const setPosition = curry(setAttribute)([
     "position",
@@ -61,7 +74,12 @@ const generatePoints = (width, length) => {
     new THREE.BufferAttribute(colors, 3),
   ])
 
-  return pipe(createGeometry, setPosition, setColors)({ geometry: "buffer" })
+  const setScales = curry(setAttribute)([
+    "aScale",
+    new THREE.BufferAttribute(scales, 1),
+  ])
+
+  return pipe(createGeometry, setPosition, setScales)({ geometry: "buffer" })
 }
 
 export { addMaterialsToPoints, generatePoints }

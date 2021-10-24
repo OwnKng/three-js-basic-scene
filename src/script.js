@@ -25,6 +25,9 @@ import {
   createRaycaster,
   setRaycasterFromCamera,
   getRaycasterIntersection,
+  generatePoints,
+  addMaterialsToPoints,
+  setScale,
 } from "./functions"
 import { vertex } from "./shaders/vertex"
 import { fragment } from "./shaders/fragment"
@@ -62,30 +65,29 @@ const renderer = pipe(
 const material = createMaterial("shader", {
   vertexShader: vertex,
   fragmentShader: fragment,
+  blending: THREE.AdditiveBlending,
   transparent: true,
   uniforms: {
-    uSize: { value: 1.0 * renderer.getPixelRatio() },
+    uSize: { value: 10.0 * renderer.getPixelRatio() },
     uTime: { value: 0 },
-    uDistortionFrequency: { value: 1.0 },
-    uDistortionStrength: { value: 4.0 },
-    uDisplacementFrequency: { value: 0.5 },
+    uDistortionFrequency: { value: 3.0 },
+    uDistortionStrength: { value: 2.0 },
+    uDisplacementFrequency: { value: 6.0 },
     uDisplacementStrength: { value: 0.2 },
-    uMouse: { value: new Vector2(0.0, 0.0) },
+    uMouse: { value: new Vector2(0.5, 0.5) },
+    uResolution: { value: new Vector2(10.0, 10.0) },
   },
 })
 
-const addShaderMaterial = curry(addMaterial)(material)
-const rotatePlane = curry(setRotation)({ x: -0.5 * Math.PI, y: 0, z: 0 })
+const addShaderMaterial = curry(addMaterialsToPoints)(material)
+const scalePoints = curry(setScale)({ x: 10, y: 10, z: 10 })
 
-const plane = pipe(
-  createGeometry,
+const points = pipe(
+  generatePoints,
   addShaderMaterial,
-  rotatePlane,
+  scalePoints,
   addObjToScene
-)({
-  geometry: "plane",
-  props: [20, 20, 512, 512],
-})
+)(256, 256)
 
 //* create camera
 const setPositionOffCenter = curry(setPosition)({ x: 0, y: 10, z: 5 })
@@ -171,7 +173,6 @@ const frame = () => {
 
   const intersects = getRaycasterIntersection(scene.children, raycaster)
   const uv = intersects.length ? intersects[0].uv : new Vector2(0.5, 0.5)
-
   mutateUniform(material, "uMouse", uv)
 
   const elapsedTime = getClockTime(clock)

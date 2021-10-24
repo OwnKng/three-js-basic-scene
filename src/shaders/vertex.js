@@ -85,37 +85,47 @@ export const vertex = /* glsl */ `
     uniform float uDisplacementStrength;
     uniform vec2 uResolution;
 
+    attribute float aScale;
+
     varying float vPerlinStrength;
     varying vec2 vMouse;
-    varying vec2 vUv;
+    varying vec2 vSt;
     varying float vTime; 
+    varying float vHeight;
 
     #define PI 3.14159265359
-
 
     ${cnoise}
 
     void main() {
 
+        //_ position
         vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+        vec2 st = 5.0 + modelPosition.xz / uResolution;
 
-        vec3 displacementPosition = position; 
-        displacementPosition = displacementPosition + cnoise(vec3(displacementPosition.xy * uDistortionFrequency, 0.0)) * uDistortionStrength;
-        float perlinStrength = cnoise(vec3(displacementPosition.xy * uDisplacementFrequency, 0.0)) * uDisplacementStrength;
+        //* general elevation
+        modelPosition.y += sin(st.x * PI) + sin(st.y * PI);
 
-        vec3 newPosition = position; 
-        newPosition += normal * perlinStrength;
+        //* noise additions to general elevation
+        float distortion = cnoise(vec3(st * uDistortionFrequency, 0.0)) * uDistortionStrength;
+        modelPosition.y += distortion;
 
-        newPosition.z += sin(perlinStrength * PI);
-     
-        vec4 viewPosition = modelViewMatrix * vec4(newPosition, 1.0);
-        vec4 projectedPosition = projectionMatrix * viewPosition;
-        gl_Position = projectedPosition;
+        //* details to the elevation
+        float perlinStrength = cnoise(vec3(st.xy * uDisplacementFrequency, 0.0)) * uDisplacementStrength;
+        modelPosition.y += modelPosition.y * perlinStrength;
+
+        vec4 viewPosition = viewMatrix * modelPosition;
+        vec4 projectionPosition = projectionMatrix * viewPosition;
+        gl_Position = projectionPosition;
+
+
+        //_ size
+        gl_PointSize = uSize * aScale;
+        gl_PointSize *= (1.0 / - viewPosition.z);
 
         //_ pass uniforms
         vPerlinStrength = perlinStrength;
-        vUv = uv;
-        vTime = uTime;
-        vMouse = uMouse;
+        vHeight = modelPosition.y; 
+        // vMouse = uMouse;
     }
 `
