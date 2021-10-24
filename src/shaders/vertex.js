@@ -106,7 +106,6 @@ export const vertex = /* glsl */ `
         vec4 projectedPosition = projectionMatrix * viewPosition;
         gl_Position = projectedPosition;
 
-
         //_ pass uniforms
         vPerlinStrength = perlinStrength;
         vUv = uv;

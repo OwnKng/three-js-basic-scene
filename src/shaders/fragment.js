@@ -65,6 +65,6 @@ export const fragment = /* glsl */ `
         temp = temp * 0.5 + 0.5;
         vec3 color = hsl2rgb(temp, 0.5, 0.5);
     
-        gl_FragColor = vec4(color, alpha);
+        gl_FragColor = vec4(color, 1.0);
     }
 `

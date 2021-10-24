@@ -22,6 +22,9 @@ import {
   createClock,
   getClockTime,
   addMaterial,
+  createRaycaster,
+  setRaycasterFromCamera,
+  getRaycasterIntersection,
 } from "./functions"
 import { vertex } from "./shaders/vertex"
 import { fragment } from "./shaders/fragment"
@@ -131,7 +134,8 @@ gui
   .name("uDisplacementStrength")
 
 //_ raycaster
-const raycaster = new THREE.Raycaster()
+const raycaster = createRaycaster()
+
 const mouse = new THREE.Vector2()
 
 function onMouseMove(event) {
@@ -163,10 +167,9 @@ const frame = () => {
   updateControls(controls)
   render(scene, camera, renderer)
 
-  raycaster.setFromCamera(mouse, camera)
+  setRaycasterFromCamera(mouse, camera, raycaster)
 
-  // calculate objects intersecting the picking ray
-  const intersects = raycaster.intersectObjects(scene.children)
+  const intersects = getRaycasterIntersection(scene.children, raycaster)
   const uv = intersects.length ? intersects[0].uv : new Vector2(0.5, 0.5)
 
   mutateUniform(material, "uMouse", uv)
