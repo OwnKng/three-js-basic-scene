@@ -61,7 +61,11 @@ const renderer = pipe(
   setPixelRatioToDevice
 )(canvas)
 
-//* create points
+//* create geometry
+const texture = new THREE.TextureLoader().load("/bio.png")
+texture.wrapS = THREE.MirroredRepeatWrapping
+texture.wrapT = THREE.MirroredRepeatWrapping
+
 const material = createMaterial("shader", {
   vertexShader: vertex,
   fragmentShader: fragment,
@@ -76,18 +80,18 @@ const material = createMaterial("shader", {
     uDisplacementStrength: { value: 0.2 },
     uMouse: { value: new Vector2(0.5, 0.5) },
     uResolution: { value: new Vector2(10.0, 10.0) },
+    uTexture: { value: texture },
   },
 })
 
-const addShaderMaterial = curry(addMaterialsToPoints)(material)
+const addShaderMaterial = curry(addMaterial)(material)
 const scalePoints = curry(setScale)({ x: 10, y: 10, z: 10 })
 
-const points = pipe(
-  generatePoints,
+const geometry = pipe(
+  createGeometry,
   addShaderMaterial,
-  scalePoints,
   addObjToScene
-)(256, 256)
+)({ geometry: "icosahedron", props: [10, 1] })
 
 //* create camera
 const setPositionOffCenter = curry(setPosition)({ x: 0, y: 10, z: 5 })

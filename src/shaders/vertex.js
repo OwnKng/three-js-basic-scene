@@ -87,11 +87,9 @@ export const vertex = /* glsl */ `
 
     attribute float aScale;
 
-    varying float vPerlinStrength;
-    varying vec2 vMouse;
-    varying vec2 vSt;
-    varying float vTime; 
-    varying float vHeight;
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 eyeVector; 
 
     #define PI 3.14159265359
 
@@ -101,31 +99,15 @@ export const vertex = /* glsl */ `
 
         //_ position
         vec4 modelPosition = modelMatrix * vec4(position, 1.0);
-        vec2 st = 5.0 + modelPosition.xz / uResolution;
-
-        //* general elevation
-        modelPosition.y += sin(st.x * PI) + sin(st.y * PI);
-
-        //* noise additions to general elevation
-        float distortion = cnoise(vec3(st * uDistortionFrequency, 0.0)) * uDistortionStrength;
-        modelPosition.y += distortion;
-
-        //* details to the elevation
-        float perlinStrength = cnoise(vec3(st.xy * uDisplacementFrequency, 0.0)) * uDisplacementStrength;
-        modelPosition.y += modelPosition.y * perlinStrength;
-
+    
         vec4 viewPosition = viewMatrix * modelPosition;
         vec4 projectionPosition = projectionMatrix * viewPosition;
         gl_Position = projectionPosition;
 
-
-        //_ size
-        gl_PointSize = uSize * aScale;
-        gl_PointSize *= (1.0 / - viewPosition.z);
-
-        //_ pass uniforms
-        vPerlinStrength = perlinStrength;
-        vHeight = modelPosition.y; 
-        // vMouse = uMouse;
+        eyeVector = normalize(modelPosition.xyz - cameraPosition);
+        //_ 
+        vUv = uv;
+        vNormal = normalize(normalMatrix * normal);
+  
     }
 `
