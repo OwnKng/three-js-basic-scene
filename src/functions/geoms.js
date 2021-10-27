@@ -7,6 +7,8 @@ const createBuffer = (props) => new THREE.BufferGeometry(props)
 const createPlane = (props) => new THREE.PlaneGeometry(...props)
 const createIcosahedron = (props) => new THREE.IcosahedronGeometry(...props)
 const createCone = (props) => new THREE.ConeGeometry(...props)
+const createIcosahedronBuffer = (props) =>
+  new THREE.IcosahedronBufferGeometry(...props)
 
 const geomMap = {
   box: createBox,
@@ -15,6 +17,7 @@ const geomMap = {
   plane: createPlane,
   icosahedron: createIcosahedron,
   cone: createCone,
+  icosahedronBuffer: createIcosahedronBuffer,
 }
 
 const createGeometry = ({ geometry, props = {} }) => {

@@ -28,9 +28,11 @@ import {
   generatePoints,
   addMaterialsToPoints,
   setScale,
+  setAttribute,
 } from "./functions"
 import { vertex } from "./shaders/vertex"
 import { fragment } from "./shaders/fragment"
+import { edgesFragment } from "./shaders/edgesFragment"
 import { Vector2 } from "three"
 
 //_ Select the canvas
@@ -47,7 +49,7 @@ const size = {
 //* create scene
 const scene = createScene()
 const addObjToScene = curry(addToScene)(scene)
-scene.background = new THREE.Color("#08121C")
+scene.background = new THREE.Color(0x111111)
 
 //* create renderer
 const setRenderWindowDimensions = curry(setRenderSize)(size)
@@ -79,9 +81,18 @@ const material = createMaterial("shader", {
     uDisplacementFrequency: { value: 6.0 },
     uDisplacementStrength: { value: 0.2 },
     uMouse: { value: new Vector2(0.5, 0.5) },
-    uResolution: { value: new Vector2(10.0, 10.0) },
+    uResolution: { value: new Vector2(size.width, size.height) },
     uTexture: { value: texture },
   },
+})
+
+//* edges material
+
+const edgesMaterial = createMaterial("shader", {
+  vertexShader: vertex,
+  fragmentShader: edgesFragment,
+  blending: THREE.AdditiveBlending,
+  transparent: true,
 })
 
 const addShaderMaterial = curry(addMaterial)(material)
@@ -91,10 +102,31 @@ const geometry = pipe(
   createGeometry,
   addShaderMaterial,
   addObjToScene
-)({ geometry: "icosahedron", props: [10, 1] })
+)({ geometry: "icosahedron", props: [1, 1] })
+
+//* create edges
+const addEdgesMaterial = curry(addMaterial)(edgesMaterial)
+
+const edgesGeo = createGeometry({
+  geometry: "icosahedronBuffer",
+  props: [1.001, 1],
+})
+
+const length = edgesGeo.attributes.position.array.length
+
+let bary = []
+
+for (let i = 0; i < length / 3; i++) {
+  bary.push(0, 0, 1, 0, 1, 0, 1, 0, 0)
+}
+
+let aBary = new Float32Array(bary)
+setAttribute(["aBary", new THREE.BufferAttribute(aBary, 3)], edgesGeo)
+
+const edges = pipe(addEdgesMaterial, addObjToScene)(edgesGeo)
 
 //* create camera
-const setPositionOffCenter = curry(setPosition)({ x: 0, y: 10, z: 5 })
+const setPositionOffCenter = curry(setPosition)({ x: 0, y: 1, z: 2 })
 
 const camera = pipe(
   createCamera,
@@ -181,6 +213,14 @@ const frame = () => {
 
   const elapsedTime = getClockTime(clock)
   mutateUniform(material, "uTime", elapsedTime)
+
+  geometry.rotation.z += 0.001
+  geometry.rotation.y += 0.001
+
+  camera.lookAt(geometry)
+
+  edges.rotation.z += 0.001
+  edges.rotation.y += 0.001
 
   window.requestAnimationFrame(frame)
 }
