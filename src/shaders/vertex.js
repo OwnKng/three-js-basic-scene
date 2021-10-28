@@ -33,7 +33,7 @@ export const vertex = /* glsl */ `
         
         //_ 
         vUv = uv;
-        vNormal = normalize(normalMatrix * normal);
+        vNormal = normalize(mat3(modelMatrix) * normal);
         vResolution = uResolution;
         vBary = aBary;
   

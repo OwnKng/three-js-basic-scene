@@ -30,10 +30,9 @@ export const fragment = /* glsl */ `
         vec3 refracted = refract(eyeVector, normal, 1.0/3.0);
         uv += 0.5 * refracted.xy;
 
-        float fresnal = pow(1.0 + dot(eyeVector, normal), 5.0); 
-
-
         vec4 t = texture2D(uTexture, uv);
+
+        float fresnal = pow(1.0 + dot(eyeVector, normal), 2.0); 
         t *= 1.0 - fresnal;
 
         gl_FragColor = t;

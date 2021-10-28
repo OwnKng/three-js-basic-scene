@@ -91,8 +91,8 @@ const material = createMaterial("shader", {
 const edgesMaterial = createMaterial("shader", {
   vertexShader: vertex,
   fragmentShader: edgesFragment,
-  blending: THREE.AdditiveBlending,
   transparent: true,
+  side: THREE.DoubleSide,
 })
 
 const addShaderMaterial = curry(addMaterial)(material)
