@@ -44,9 +44,8 @@ const hsl2rgb = `
     }
 `
 
-export const fragment = /* glsl */ `
+export const fragmentInner = /* glsl */ `
     varying vec3 vNormal;
-    varying vec3 vBary;
     varying vec2 vUv; 
     varying float vTime; 
 
@@ -54,12 +53,10 @@ export const fragment = /* glsl */ `
     
 
     void main() {
-        float width = 1.0;
-        vec3 d = fwidth(vBary);
-        vec3 s = smoothstep(d*(width + 0.5), d*(width - 0.5), vBary);
-        float line = max(s.x, max(s.y, s.z));
+        float distortion = sin(vUv.x + vUv.y + vTime) * 0.5 + 0.5;
+        distortion = distortion * 0.3 + 0.1;
+        vec3 color = hsl2rgb(distortion, 0.3, 0.6);
 
-        if(line < 0.2) discard;
-        gl_FragColor = vec4(vec3(line), 1.0);
+        gl_FragColor = vec4(color, 1.0);
     }
 `

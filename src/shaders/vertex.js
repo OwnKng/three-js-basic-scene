@@ -90,6 +90,8 @@ export const vertex = /* glsl */ `
     attribute vec3 aBary;
     varying vec3 vBary;
     varying vec2 vUv; 
+    varying float vTime; 
+
 
     ${cnoise}
 
@@ -99,5 +101,6 @@ export const vertex = /* glsl */ `
         vNormal = normalize(normalMatrix * normal);
         vBary = aBary;
         vUv = uv;
+        vTime = uTime; 
     }
 `

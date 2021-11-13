@@ -1,7 +1,7 @@
 import "./style.css"
 import * as THREE from "three"
 
-import { pipe, curry } from "ramda"
+import { pipe, curry, median } from "ramda"
 
 import {
   createCamera,
@@ -9,7 +9,6 @@ import {
   createRenderer,
   addToScene,
   setPosition,
-  setRotation,
   setRendererPixelRatio,
   createOrbitControls,
   setRenderSize,
@@ -24,6 +23,7 @@ import {
 } from "./functions"
 import { vertex } from "./shaders/vertex"
 import { fragment } from "./shaders/fragment"
+import { fragmentInner } from "./shaders/fragmentInner"
 
 //_ Select the canvas
 const canvas = document.querySelector("canvas.webgl")
@@ -53,17 +53,25 @@ const renderer = pipe(
   setPixelRatioToDevice
 )(canvas)
 
-//* create points
-const material = createMaterial("shader", {
+const wireframeMaterial = createMaterial("shader", {
   vertexShader: vertex,
   fragmentShader: fragment,
-  side: THREE.DoubleSide,
   uniforms: {
     uSize: { value: 1.0 * renderer.getPixelRatio() },
     uTime: { value: 0 },
   },
 })
 
+const material = createMaterial("shader", {
+  vertexShader: vertex,
+  fragmentShader: fragmentInner,
+  uniforms: {
+    uSize: { value: 1.0 * renderer.getPixelRatio() },
+    uTime: { value: 0 },
+  },
+})
+
+const addWireframeMaterial = curry(addMaterial)(wireframeMaterial)
 const addShaderMaterial = curry(addMaterial)(material)
 
 const createWireframe = (props) => {
@@ -86,12 +94,17 @@ const createWireframe = (props) => {
   return wireframe
 }
 
-const large = pipe(createWireframe, addShaderMaterial, addObjToScene)([5, 1])
-const middle = pipe(createWireframe, addShaderMaterial, addObjToScene)([1.4, 3])
-const small = pipe(createWireframe, addShaderMaterial, addObjToScene)([1, 2])
+const outer = pipe(
+  createWireframe,
+  addWireframeMaterial,
+  addObjToScene
+)([5.005, 1])
 
-setPosition({ x: -2, y: 6, z: 3 }, small)
-setPosition({ x: 1, y: -2, z: -8 }, middle)
+const inner = pipe(
+  createGeometry,
+  addShaderMaterial,
+  addObjToScene
+)({ geometry: "icosahedronBuffer", props: [5, 1] })
 
 //* create camera
 const setPositionOffCenter = curry(setPosition)({ x: 0, y: 0, z: -13 })
@@ -133,7 +146,11 @@ const frame = () => {
   const elapsedTime = getClockTime(clock)
   mutateUniform(material, "uTime", elapsedTime)
 
-  camera.lookAt(large)
+  inner.rotation.x += 0.005
+  inner.rotation.y += 0.005
+
+  outer.rotation.x += 0.005
+  outer.rotation.y += 0.005
 
   window.requestAnimationFrame(frame)
 }
