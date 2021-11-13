@@ -45,16 +45,24 @@ const hsl2rgb = `
 `
 
 export const fragment = /* glsl */ `
-    varying float vHeight; 
-
+    varying vec3 vNormal;
+    varying vec3 vBary;
+    varying vec2 vUv; 
     ${hsl2rgb}
+    
 
     void main() {
-        float height = vHeight / 20.0;
-        vec3 color = hsl2rgb(height + 0.6, 0.5, 0.5);
+        float width = 2.0;
+        vec3 d = fwidth(vBary);
+        vec3 s = smoothstep(d*(width + 0.5), d*(width - 0.5), vBary);
+        float line = max(s.x, max(s.y, s.z));
 
-        float strength = step(0.5, 1.0 - distance(gl_PointCoord, vec2(0.5)));
+        vec3 X = dFdx(vNormal);
+        vec3 Y = dFdy(vNormal);
+        vec3 normal = normalize(cross(X, Y));    
+        float diffuse = dot(normal, vec3(1.0));
 
-        gl_FragColor = vec4(color, strength);
+        if(line > 0.2) discard;
+        gl_FragColor = vec4(vec3(diffuse), 1.0);
     }
 `

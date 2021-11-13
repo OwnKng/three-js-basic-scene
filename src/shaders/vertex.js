@@ -85,46 +85,19 @@ float cnoise(vec3 P)
 }`
 
 export const vertex = /* glsl */ `
-    uniform float uSize;
     uniform float uTime;
-    varying float vHeight; 
+    varying vec3 vNormal;
+    attribute vec3 aBary;
+    varying vec3 vBary;
+    varying vec2 vUv; 
 
     ${cnoise}
 
-    float generateElevation(vec3 _position) {
-        float elevation = 0.0;
-
-        elevation = 1.0 - length(_position.xz) / 2.0;
-
-        //_ general elevation
-        elevation += cnoise(vec3(
-            _position.xz * 0.2, 
-            0.0
-        )) * 0.5; 
-
-        // details 
-        elevation += cnoise(vec3(
-            (_position.xz + 123.0) * 0.5,  
-            0.0
-        )) * 1.2;
-
-        return elevation; 
-        
-    }
-
     void main() {
-        vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 
-        float distortion = generateElevation(modelPosition.xyz);
-        modelPosition.y += distortion;
-
-        vec4 viewPosition = viewMatrix * modelPosition;
-        vec4 projectedPosition = projectionMatrix * viewPosition;
-
-        gl_Position = projectedPosition;
-        gl_PointSize = 10.0 / -viewPosition.z;
-
-        float height = length(modelPosition.y);
-        vHeight = height;
+        vNormal = normalize(normalMatrix * normal);
+        vBary = aBary;
+        vUv = uv;
     }
 `

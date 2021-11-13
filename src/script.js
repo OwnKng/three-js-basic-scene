@@ -4,23 +4,23 @@ import * as THREE from "three"
 import { pipe, curry } from "ramda"
 
 import {
-  generatePoints,
   createCamera,
   createScene,
   createRenderer,
   addToScene,
   setPosition,
+  setRotation,
   setRendererPixelRatio,
   createOrbitControls,
   setRenderSize,
   render,
   updateControls,
-  setScale,
-  addMaterialsToPoints,
   createMaterial,
   mutateUniform,
   createClock,
   getClockTime,
+  createGeometry,
+  addMaterial,
 } from "./functions"
 import { vertex } from "./shaders/vertex"
 import { fragment } from "./shaders/fragment"
@@ -57,27 +57,44 @@ const renderer = pipe(
 const material = createMaterial("shader", {
   vertexShader: vertex,
   fragmentShader: fragment,
-  depthWrite: false,
-  blending: THREE.AdditiveBlending,
-  vertexColors: true,
+  side: THREE.DoubleSide,
   uniforms: {
     uSize: { value: 1.0 * renderer.getPixelRatio() },
     uTime: { value: 0 },
   },
 })
 
-const addShaderMaterial = curry(addMaterialsToPoints)(material)
-const scalePoints = curry(setScale)({ x: 20, y: 20, z: 20 })
+const addShaderMaterial = curry(addMaterial)(material)
 
-const points = pipe(
-  generatePoints,
-  addShaderMaterial,
-  scalePoints,
-  addObjToScene
-)(1000, 1000)
+const createWireframe = (props) => {
+  const wireframe = createGeometry({
+    geometry: "icosahedronBuffer",
+    props: props,
+  })
+
+  let length = wireframe.attributes.position.array.length
+
+  let bary = []
+
+  for (let i = 0; i < length; i++) {
+    bary.push(0, 0, 1, 0, 1, 0, 1, 0, 0)
+  }
+
+  const aBary = new Float32Array(bary)
+  wireframe.setAttribute("aBary", new THREE.BufferAttribute(aBary, 3))
+
+  return wireframe
+}
+
+const large = pipe(createWireframe, addShaderMaterial, addObjToScene)([5, 1])
+const middle = pipe(createWireframe, addShaderMaterial, addObjToScene)([1.4, 3])
+const small = pipe(createWireframe, addShaderMaterial, addObjToScene)([1, 2])
+
+setPosition({ x: -2, y: 6, z: 3 }, small)
+setPosition({ x: 1, y: -2, z: -8 }, middle)
 
 //* create camera
-const setPositionOffCenter = curry(setPosition)({ x: 2, y: 2, z: 2 })
+const setPositionOffCenter = curry(setPosition)({ x: 0, y: 0, z: -13 })
 
 const camera = pipe(
   createCamera,
@@ -115,6 +132,8 @@ const frame = () => {
 
   const elapsedTime = getClockTime(clock)
   mutateUniform(material, "uTime", elapsedTime)
+
+  camera.lookAt(large)
 
   window.requestAnimationFrame(frame)
 }
